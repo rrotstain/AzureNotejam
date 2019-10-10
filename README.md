@@ -12,7 +12,7 @@ This project uses builds upon [Notejam](https://github.com/komarserjio/notejam) 
 * The application deployment is handled by the Maven **azure-webapp** plugin. In order for this plugin to authenticate to Azure, the file **~/.m2/settings.xml** has to be created in the home directory of whoever runs the **mvn azure-webapp:deploy** command. In that regard, update the **vsts_agent_home_dir** variable as required.
 * This project was developed with Azure DevOps. As such, the pipeline file **[pipeline/pipeline.yml](pipeline/pipeline.yml)** was created to facilitate CI/CD.
 
-** Usage
+## Usage
 
 * To test, run **mvn test**
 * To deploy, first run **mvn package** then **mvn azure-webapp:deploy**
