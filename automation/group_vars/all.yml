@@ -1,0 +1,41 @@
+# azure subscription and service principal details
+az:
+  subscription_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  app_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  app_secret: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          62323234343564306637346463613830303366366539643937373162303762386561316431306238
+          3338306434373961396665316236633166323363346536630a616632323936333432633533663831
+          35616461643565336464626565326439333531353630613361356135353866633539356234373536
+          3334646436363738310a303835393437653637333463633336323962343732623165653666666564
+          35336166343465303831623239653337366330613638623637623637366437663939656435333632
+          3865386330373033376464333162386362316263396361623163
+
+# all azure assets placed in one resource group
+az_resource_group: myResourceGroup
+az_location: "Canada Central" # update as needed
+
+az_sql_db:
+  sql_server_name: notejam-sql-server
+  admin_username: sqlServerUser
+  admin_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33326365636365363536386565303636373261343266333937383361363364386461643535373230
+          3934393163333962666165303764313764643136396230660a646634336665663061336138343930
+          35393538613737663633623837353433383361363961346261343761396433393736613235613133
+          6666353362333438320a613962353538336364613732613065383133663039613765653031343965
+          3336
+  db_name: notejam-sql-db
+  server_name: notejam
+  firewall_allow_start_ip: "10.1.0.0" # update as needed - this will dictate who can access the SQL Server database
+  firewall_allow_end_ip: "10.1.0.255" # update as needed - this will dictate who can access the SQL Server database
+
+az_app_service:
+  service_plan_name: notejam-app-service-plan
+  app_name: notejam-app
+  pricing_tier: P1V2
+  deployment_type: ftp
+  app_port: 8080
+
+vsts_agent_home_dir: /home/myUserAccount

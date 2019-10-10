@@ -1,0 +1,27 @@
+- name: Create Azure SQL Server
+  azure_rm_sqlserver:
+    name: "{{az_sql_db.sql_server_name}}"
+    resource_group: "{{az_resource_group}}"
+    admin_username: "{{az_sql_db.admin_username}}"
+    admin_password: "{{az_sql_db.admin_password}}"
+    location: "{{az_location}}"
+    state: present # ensure resource exists
+    auth_source: env
+    
+- name: Create Azure SQL Database Instance
+  azure_rm_sqldatabase:
+    name: "{{az_sql_db.db_name}}" # name of the azure asset in the azure portal
+    resource_group: "{{az_resource_group}}" # resource group where this asset can be found
+    server_name: "{{az_sql_db.sql_server_name}}" # instance name for the database
+    state: present # ensure resource exists
+    create_mode: default
+
+# Add firewall rule allowing only the desired access to the database
+- name: Configure Database Firewall
+  azure_rm_sqlfirewallrule:
+    name: "app-subnet-allow"
+    resource_group: "{{az_resource_group}}"
+    server_name: "{{az_sql_db.sql_server_name}}" # instance name for the database
+    start_ip_address: "{{az_sql_db.firewall_allow_start_ip}}"
+    end_ip_address: "{{az_sql_db.firewall_allow_end_ip}}"
+    state: present # ensure resource exists

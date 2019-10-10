@@ -1,0 +1,82 @@
+# The approach we'll take to deploy the application is to use Maven's Azure WebApp module
+# Refer to https://docs.microsoft.com/en-ca/java/azure/spring-framework/deploy-spring-boot-java-app-with-maven-plugin?view=azure-java-stable
+
+# We'll also need to enable Maven to authenticate to Azure
+# Refer to https://docs.microsoft.com/en-us/azure/devops/artifacts/maven/pom-and-settings?view=azure-devops
+- name: Create .m2 Directory
+  file:
+    path: "{{vsts_agent_home_dir}}/.m2"
+    state: directory
+
+- name: Create settings.xml
+  template:
+    src: settings.xml.j2
+    dest: "{{vsts_agent_home_dir}}/.m2/settings.xml"
+    force: yes # even if the file already exists, overwrite it
+    
+# Now, update application.properties file
+- name: Update application.properties
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/src/main/resources/application.properties"
+    regexp: "^spring\\.datasource\\.url=(.*)$"
+    replace: "spring.datasource.url=jdbc:sqlserver://{{az_sql_db.sql_server_name}}.database.windows.net:1433;database={{az_sql_db.db_name}};user={{az_sql_db.admin_username}}@{{az_sql_db.sql_server_name}};password={{az_sql_db.admin_password}};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
+
+# Now, update pom.xml
+- name: Update pom.xml - resourceGroup
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_resource_group\\}\\}(.*)$"
+    replace: "\\g<1>{{az_resource_group}}\\g<2>"
+
+- name: Update pom.xml - appServicePlanName
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_app_service.service_plan_name\\}\\}(.*)$"
+    replace: "\\g<1>{{az_app_service['service_plan_name']}}\\g<2>"
+
+- name: Update pom.xml - appName
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_app_service.app_name\\}\\}(.*)$"
+    replace: "\\g<1>{{az_app_service['app_name']}}\\g<2>"
+
+- name: Update pom.xml - region
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_location\\}\\}(.*)$"
+    replace: "\\g<1>{{az_location}}\\g<2>"
+
+- name: Update pom.xml - pricingTier
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_app_service.pricing_tier\\}\\}(.*)$"
+    replace: "\\g<1>{{az_app_service['pricing_tier']}}\\g<2>"
+
+- name: Update pom.xml - deploymentType
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_app_service.deployment_type\\}\\}(.*)$"
+    replace: "\\g<1>{{az_app_service['deployment_type']}}\\g<2>"
+
+- name: Update pom.xml - application port
+  replace:
+    path: "{{playbook_dir}}/../notejam/spring/pom.xml"
+    regexp: "^(.*)\\{\\{az_app_service.app_port\\}\\}(.*)$"
+    replace: "\\g<1>{{az_app_service['app_port']}}\\g<2>"
+
+# Now, create web.config
+- name: Create web.config
+  copy:
+    src: web.config
+    dest: "{{playbook_dir}}/../notejam/spring/target/web.config"
+
+# Finally, invoke the maven command to deploy the application
+- name: Deploy Application
+  shell: "mvn azure-webapp:deploy"
+  args:
+    chdir: "{{playbook_dir}}/../notejam/spring"
+  register: deploy_result
+
+- name: Log Deployment Output
+  debug:
+    msg: "{{deploy_result.stdout.split('\n')}}" #tokenize the stdout into an array so that ansible prints it out nicely

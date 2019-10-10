@@ -1,0 +1,10 @@
+---
+- name: 
+  hosts: localhost
+  roles:
+    - app_deploy
+  environment:
+    AZURE_CLIENT_ID: "{{az.app_id}}" # service principal id
+    AZURE_SECRET: "{{az.app_secret}}" # service principal password
+    AZURE_SUBSCRIPTION_ID: "{{az.subscription_id}}" # target azure subscription id
+    AZURE_TENANT: "{{az.tenant_id}}"  # target azure tenant id
